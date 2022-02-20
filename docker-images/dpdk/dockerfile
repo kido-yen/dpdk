@@ -1,0 +1,23 @@
+FROM almalinux:8.5-20211112 as builder
+COPY build-dpdk.sh /BUILD/
+WORKDIR /BUILD/
+ARG PROFILE
+ENV PROFILE=${PROFILE:-BASIC}
+ARG PKG_VER
+ENV PKG_VER=${PKG_VER:-21.11}
+RUN ./build-dpdk.sh
+
+
+
+FROM almalinux:8.5-20211112
+ARG PKG_VER
+COPY --from=builder /opt/dpdk-${PKG_VER} /opt/dpdk-${PKG_VER}
+RUN mv /opt/dpdk-${PKG_VER}/isa-l /usr/lib64/isa-l || true \
+    && dnf install -y 'dnf-command(config-manager)' epel-release \
+    && dnf config-manager --set-enabled powertools \
+    && dnf install -y libbpf libfdt libpcap intel-ipsec-mb libatomic zlib \
+    && echo "/usr/lib64/isa-l" > /etc/ld.so.conf.d/iasl.conf \
+    && ldconfig \ 
+    && dnf clean all
+
+WORKDIR /opt/dpdk-${PKG_VER}
