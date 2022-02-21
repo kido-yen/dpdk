@@ -2,7 +2,7 @@
 function env_prep_common {
   dnf install -y 'dnf-command(config-manager)' epel-release
   dnf config-manager --set-enabled powertools
-  dnf install -y meson ninja-build gcc
+  dnf install -y meson ninja-build gcc numactl-devel
   pip3 install pyelftools
 }
 
